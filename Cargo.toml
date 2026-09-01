@@ -1,0 +1,10 @@
+[package]
+name = "sql-migration-kit"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Parse SQL migration files (up/down sections) from disk or stdin"
+
+[lib]
+name = "sql_migration_kit"
+path = "src/lib.rs"
