@@ -1,3 +1,5 @@
+use crate::statement::split_statements;
+
 /// A line that, on its own, separates the "up" SQL from the "down" SQL
 /// within a single migration file. Chosen to be a valid SQL comment so
 /// the file still runs as-is if fed straight to a client without being
@@ -31,6 +33,21 @@ impl Migration {
             },
         }
     }
+
+    /// The `up` section broken into individual statements. See
+    /// `split_statements` for what counts as a separator.
+    pub fn up_statements(&self) -> Vec<String> {
+        split_statements(&self.up)
+    }
+
+    /// The `down` section broken into individual statements, or an
+    /// empty list if the migration has no down section.
+    pub fn down_statements(&self) -> Vec<String> {
+        match &self.down {
+            Some(down) => split_statements(down),
+            None => Vec::new(),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -55,5 +72,23 @@ mod tests {
     fn marker_needs_its_own_line() {
         let m = Migration::parse("select 1; -- migrate:down comment");
         assert_eq!(m.down, None);
+    }
+
+    #[test]
+    fn up_and_down_statements_are_split() {
+        let m = Migration::parse(
+            "create table t (id int);\ninsert into t values (1);\n-- migrate:down\ndrop table t;",
+        );
+        assert_eq!(
+            m.up_statements(),
+            vec!["create table t (id int)", "insert into t values (1)"]
+        );
+        assert_eq!(m.down_statements(), vec!["drop table t"]);
+    }
+
+    #[test]
+    fn down_statements_empty_when_no_down_section() {
+        let m = Migration::parse("select 1;");
+        assert!(m.down_statements().is_empty());
     }
 }

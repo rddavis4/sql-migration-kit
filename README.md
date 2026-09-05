@@ -69,11 +69,28 @@ let migration = Migration::parse("create table t (id int);");
 assert_eq!(migration.down, None);
 ```
 
+Break a section into individual statements, for runners that execute
+one at a time instead of handing the whole block to the driver:
+
+```rust
+use sql_migration_kit::Migration;
+
+let migration = Migration::parse("create table t (id int);\ninsert into t values (1);");
+for statement in migration.up_statements() {
+    println!("{statement}");
+}
+```
+
+The splitter tracks single-quoted strings, double-quoted identifiers,
+`--` line comments, and `/* */` block comments, so a semicolon inside
+any of those doesn't end the statement early.
+
 ## Status
 
-Early skeleton. The parser currently does the up/down split and nothing
-else — no statement-level splitting, no filename/version parsing, no
-directory scanning. See the crate for what's implemented so far.
+Early skeleton. The parser does the up/down split and statement-level
+splitting within each section. Still missing: filename/version
+parsing, directory scanning, checksums, and a richer error type. See
+the crate for what's implemented so far.
 
 ## License
 
