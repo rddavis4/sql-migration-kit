@@ -85,11 +85,27 @@ The splitter tracks single-quoted strings, double-quoted identifiers,
 `--` line comments, and `/* */` block comments, so a semicolon inside
 any of those doesn't end the statement early.
 
+Pull the version and name out of a migration filename:
+
+```rust
+use sql_migration_kit::Filename;
+
+let f = Filename::parse("0001_create_accounts.sql").unwrap();
+assert_eq!(f.version, "0001");
+assert_eq!(f.name, "create_accounts");
+```
+
+The version is left as a string rather than a number, so leading
+zeros survive and timestamp-style versions
+(`20240102150405_add_index.sql`) work the same way as small integer
+ones. A bare version with no name (`0001.sql`) parses fine and just
+has an empty name. Filenames with no leading digits return `None`.
+
 ## Status
 
-Early skeleton. The parser does the up/down split and statement-level
-splitting within each section. Still missing: filename/version
-parsing, directory scanning, checksums, and a richer error type. See
+Early skeleton. The parser does the up/down split, statement-level
+splitting within each section, and filename/version parsing. Still
+missing: directory scanning, checksums, and a richer error type. See
 the crate for what's implemented so far.
 
 ## License

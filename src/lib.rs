@@ -6,10 +6,12 @@
 //! `reader` for the common case of getting that text from either a file
 //! path or stdin.
 
+mod filename;
 mod migration;
 mod reader;
 mod statement;
 
+pub use filename::Filename;
 pub use migration::{Migration, DOWN_MARKER};
 pub use reader::{read_from_path, read_from_stdin, read_source};
 pub use statement::split_statements;
