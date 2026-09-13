@@ -101,12 +101,31 @@ zeros survive and timestamp-style versions
 ones. A bare version with no name (`0001.sql`) parses fine and just
 has an empty name. Filenames with no leading digits return `None`.
 
+Scan a directory for migration files, in order:
+
+```rust
+use sql_migration_kit::scan_dir;
+
+let files = scan_dir("migrations")?;
+for file in &files {
+    println!("{} {}", file.filename.version, file.filename.name);
+}
+# Ok::<(), std::io::Error>(())
+```
+
+Files are ordered by version, treating each version as a number rather
+than as text, so a directory can mix short sequential versions
+(`0001`, `0002`, ...) with timestamp-style ones without the two
+schemes fighting over sort order. Entries that don't parse as a
+migration filename (a README, a schema dump) are skipped, and
+subdirectories aren't descended into.
+
 ## Status
 
 Early skeleton. The parser does the up/down split, statement-level
-splitting within each section, and filename/version parsing. Still
-missing: directory scanning, checksums, and a richer error type. See
-the crate for what's implemented so far.
+splitting within each section, filename/version parsing, and ordered
+directory scanning. Still missing: checksums and a richer error type.
+See the crate for what's implemented so far.
 
 ## License
 
