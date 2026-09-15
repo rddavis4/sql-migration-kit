@@ -101,6 +101,20 @@ zeros survive and timestamp-style versions
 ones. A bare version with no name (`0001.sql`) parses fine and just
 has an empty name. Filenames with no leading digits return `None`.
 
+Get a checksum for drift detection — record it when a migration is
+applied, then compare against a fresh read later to catch a file that
+was edited after the fact:
+
+```rust
+use sql_migration_kit::Migration;
+
+let migration = Migration::parse("create table t (id int);");
+let recorded_checksum = migration.checksum();
+
+let reread = Migration::parse("create table t (id int);");
+assert_eq!(reread.checksum(), recorded_checksum);
+```
+
 Scan a directory for migration files, in order:
 
 ```rust
@@ -123,9 +137,9 @@ subdirectories aren't descended into.
 ## Status
 
 Early skeleton. The parser does the up/down split, statement-level
-splitting within each section, filename/version parsing, and ordered
-directory scanning. Still missing: checksums and a richer error type.
-See the crate for what's implemented so far.
+splitting within each section, filename/version parsing, ordered
+directory scanning, and content checksums. Still missing: a richer
+error type. See the crate for what's implemented so far.
 
 ## License
 

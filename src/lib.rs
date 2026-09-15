@@ -6,6 +6,7 @@
 //! `reader` for the common case of getting that text from either a file
 //! path or stdin.
 
+mod checksum;
 mod filename;
 mod migration;
 mod reader;

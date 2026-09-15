@@ -48,6 +48,15 @@ impl Migration {
             None => Vec::new(),
         }
     }
+
+    /// A checksum over the parsed `up` and `down` sections, as 16
+    /// lowercase hex digits. Two migrations with the same checksum have
+    /// the same effective content; a mismatch against a previously
+    /// recorded checksum means the file changed after it was applied.
+    /// Not cryptographically secure — see `checksum` module docs.
+    pub fn checksum(&self) -> String {
+        crate::checksum::checksum(&self.up, self.down.as_deref())
+    }
 }
 
 #[cfg(test)]
@@ -90,5 +99,18 @@ mod tests {
     fn down_statements_empty_when_no_down_section() {
         let m = Migration::parse("select 1;");
         assert!(m.down_statements().is_empty());
+    }
+
+    #[test]
+    fn checksum_is_stable_across_reparses() {
+        let text = "create table t (id int);\n-- migrate:down\ndrop table t;";
+        assert_eq!(Migration::parse(text).checksum(), Migration::parse(text).checksum());
+    }
+
+    #[test]
+    fn checksum_changes_when_content_changes() {
+        let a = Migration::parse("create table t (id int);");
+        let b = Migration::parse("create table t (id integer);");
+        assert_ne!(a.checksum(), b.checksum());
     }
 }
